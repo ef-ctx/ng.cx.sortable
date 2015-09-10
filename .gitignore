@@ -1,0 +1,13 @@
+node_modules/
+components/
+build/
+
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+
+*~
+._*
+*.swp
+*.log

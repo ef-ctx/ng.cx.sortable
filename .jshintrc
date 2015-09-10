@@ -1,0 +1,29 @@
+{
+  "curly": true,
+  "immed": true,
+  "newcap": true,
+  "noarg": true,
+  "sub": true,
+  "boss": true,
+  "eqnull": true,
+  "quotmark": true,
+  "strict": true,
+  "browser": true,
+  "undef": true,
+  "indent": 2,
+  "globals": {
+    "angular": true,
+    "jasmine": true,
+    "console": true,
+    "describe": true,
+    "beforeEach": true,
+    "afterEach": true,
+    "module": true,
+    "it": true,
+    "inject": true,
+    "expect": true,
+    "spyOn": true,
+    "require": true,
+    "process": true
+  }
+}

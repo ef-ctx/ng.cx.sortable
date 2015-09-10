@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>ng.cx.sortable</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="stylesheet" type="text/css" href="<%= css %>">
+    </head>
+    <body ng-app="example.app">
+        <!--h1>Sortable Grid Using GreenSock <a href="http://greensock.com/draggable" target="_blank">Draggable</a></h1>
+
+        <div class="layout">
+          <label><input id="mixed" name="layout" type="radio" value="mixed" checked=""/> Mixed Tile Size</label>
+          <label><input id="fixed" name="layout" type="radio" value="fixed"/> Fixed Tile Size</label>
+          <label><input id="column" name="layout" type="radio" value="column"/> Single Column</label>
+        </div>
+        <button id="add">ADD TILE</button>
+        <div iid="list"></div-->
+
+        <div ng-controller="ExampleCtrl">
+            <div id="list" cx-sortables>
+                <div class="tile" cx-sortable ng-repeat="item in things track by $index">
+                    {{ item }}
+                </div>
+            </div>
+        </div>
+
+        <% _.each(jslibs, function(lib) { %>
+        <script type="text/javascript" src="<%= lib %>"></script>
+        <% }); %>
+        <script type="text/javascript" src="<%= mainjs %>"></script>
+    </body>
+</html>
