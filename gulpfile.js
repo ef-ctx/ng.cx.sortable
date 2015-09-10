@@ -78,3 +78,20 @@ gulp.task('default', [
 ], function () {
   gulp.start('build');
 });
+
+gulp.task('watch', ['default'], function () {
+    /**
+     * @todo : make config
+     */
+    gulp.watch(['src/**/*.less'], ['build-css']);
+
+    /**
+     * @todo : make config
+     */
+    gulp.watch(['src/*.js', 'src/**/*.js'], ['build-js']);
+
+    /**
+     * @todo : make config
+     */
+    gulp.watch(['src/**/*.tpl.html'], ['build-index']);
+});

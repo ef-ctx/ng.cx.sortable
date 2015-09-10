@@ -10,16 +10,6 @@
         <link rel="stylesheet" type="text/css" href="<%= css %>">
     </head>
     <body ng-app="example.app">
-        <!--h1>Sortable Grid Using GreenSock <a href="http://greensock.com/draggable" target="_blank">Draggable</a></h1>
-
-        <div class="layout">
-          <label><input id="mixed" name="layout" type="radio" value="mixed" checked=""/> Mixed Tile Size</label>
-          <label><input id="fixed" name="layout" type="radio" value="fixed"/> Fixed Tile Size</label>
-          <label><input id="column" name="layout" type="radio" value="column"/> Single Column</label>
-        </div>
-        <button id="add">ADD TILE</button>
-        <div iid="list"></div-->
-
         <div ng-controller="ExampleCtrl">
             <div id="list" cx-sortables>
                 <div class="tile" cx-sortable ng-repeat="item in things track by $index">
