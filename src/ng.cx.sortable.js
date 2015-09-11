@@ -49,10 +49,9 @@ angular.module('ng.cx.sortable', [])
     'use strict';
 
     function CxDraggable($elem, $ctrl) {
-      var colspan = $ctrl.getConfig('fixedSize') || $ctrl.getConfig('oneColumn') ? 1 : Math.floor(Math.random() * 2) + 1,
+      var self = this,
         tile = {
           col: null,
-          colspan: colspan,
           height: 0,
           inBounds: true,
           index: null,
@@ -61,7 +60,6 @@ angular.module('ng.cx.sortable', [])
           newTile: true,
           positioned: false,
           row: null,
-          rowspan: 1,
           width: 0,
           x: 0,
           y: 0
@@ -80,6 +78,12 @@ angular.module('ng.cx.sortable', [])
       this.addEventListener('drag', this.onDrag, this);
       this.addEventListener('press', this.onPress, this);
       this.addEventListener('release', this.onRelease, this);
+
+      Object.defineProperty(this.$elem, '$draggable', {
+        get: function () {
+          return self;
+        }
+      });
     }
 
     CxDraggable.prototype = Object.create(Draggable.prototype);
@@ -109,14 +113,14 @@ angular.module('ng.cx.sortable', [])
         // Row to update is used for a partial layout update
         // Shift left/right checks if the tile is being dragged
         // towards the the tile it is testing
-        testTile = tiles[i].tile;
+        testTile = tiles[i].$draggable.tile;
         onSameRow = (tile.row === testTile.row);
         rowToUpdate = onSameRow ? tile.row : -1;
         shiftLeft = onSameRow ? (this.x < this.lastX && tile.index > i) : true;
         shiftRight = onSameRow ? (this.x > this.lastX && tile.index < i) : true;
         validMove = (testTile.positioned && (shiftLeft || shiftRight));
 
-        if (this.hitTest(tiles[i].$elem, this.$ctrl.getConfig('threshold')) && validMove) {
+        if (this.hitTest(tiles[i], this.$ctrl.getConfig('threshold')) && validMove) {
           this.$ctrl.changePosition(tile.index, i, rowToUpdate);
           break;
         }
@@ -179,27 +183,21 @@ angular.module('ng.cx.sortable', [])
     'use strict';
 
     var self = this,
-      _draggables = [],
       _config = {
-        fixedSize: true, // When true, each tile's colspan will be fixed to 1
-        oneColumn: false, // When true, grid will only have 1 column and tiles have fixed colspan of 1
         threshold: '50%', // This is amount of overlap between tiles needed to detect a collision,
-        gutter: 7,
-        colCount: null,
         rowCount: null,
-        gutterStep: null,
-        rowSize: 100,
-        colSize: 100,
+        gutterStep: 0,
         zIndex: 1000,
-      };
+      },
+      _onChangePositionCallback;
 
     this.$container = null;
 
     this.changePosition = function (from, to, rowToUpdate) {
       var insert = from > to ? 'insertBefore' : 'insertAfter',
         draggables = this.getDraggables(),
-        newNode = draggables[from].$elem,
-        referenceNode = draggables[to].$elem,
+        newNode = draggables[from],
+        referenceNode = draggables[to],
         parent = referenceNode.parentNode;
 
       // Change DOM positions
@@ -209,19 +207,18 @@ angular.module('ng.cx.sortable', [])
         parent.insertBefore(parent.removeChild(newNode), referenceNode.nextSibling);
       }
 
-      _draggables.splice(to, 0, _draggables.splice(from, 1)[0]);
-
       this.layoutInvalidated(rowToUpdate);
+
+      if (_onChangePositionCallback) {
+        _onChangePositionCallback();
+      }
     };
 
     this.layoutInvalidated = function (rowToUpdate) {
       var timeline = new TimelineMax(),
         draggables = this.getDraggables(),
         partialLayout = (rowToUpdate > -1),
-        colCount = this.getConfig('colCount'),
         rowCount = this.getConfig('rowCount'),
-        colSize = this.getConfig('colSize'),
-        rowSize = this.getConfig('rowSize'),
         gutterStep = this.getConfig('gutterStep'),
         zIndex = this.getConfig('zIndex'),
         height = 0,
@@ -229,14 +226,33 @@ angular.module('ng.cx.sortable', [])
         row = 0,
         time = 0.35;
 
-      angular.forEach(draggables, angular.bind(this, function (draggable, index) {
-        var tile = draggable.tile,
+      var containerWidth = this.$container.getBoundingClientRect().width,
+        colWidth = 0,
+        colHeight = 0,
+        rowOffset = 0;
+
+      angular.forEach(draggables, angular.bind(this, function (elem, index) {
+        var draggable = elem.$draggable,
+          tile = draggable.tile,
+          rect = draggable.$elem.getBoundingClientRect(),
+          rectWidth = Math.round(rect.width),
+          rectHeight = Math.round(rect.height),
           oldRow = tile.row,
           oldCol = tile.col,
-          newTile = tile.newTile,
           from,
           to,
           duration;
+
+        colHeight = rectHeight > colHeight ? rectHeight : colHeight;
+
+        if ((colWidth + rectWidth) > containerWidth) {
+          colWidth = 0;
+          rowOffset += colHeight + gutterStep;
+
+          // @TODO: Do we really need col.
+          col = 0;
+          row += 1;
+        }
 
         // PARTIAL LAYOUT: This condition can only occur while a tile is being
         // dragged. The purpose of this is to only swap positions within a row,
@@ -249,27 +265,23 @@ angular.module('ng.cx.sortable', [])
         if (partialLayout) {
           row = tile.row;
           if (tile.row !== rowToUpdate) {
+            colWidth += rectWidth + gutterStep;
             return;
           }
-        }
-
-        // Update trackers when colCount is exceeded
-        if (col + tile.colspan > colCount) {
-          col = 0;
-          row += 1;
         }
 
         angular.extend(tile, {
           col: col,
           row: row,
           index: index,
-          x: col * gutterStep + (col * colSize),
-          y: row * gutterStep + (row * rowSize),
-          width: tile.colspan * colSize + ((tile.colspan - 1) * gutterStep),
-          height: tile.rowspan * rowSize
+          x: colWidth,
+          y: rowOffset,
+          width: rectWidth,
+          height: rectHeight
         });
 
-        col += tile.colspan;
+        colWidth += rectWidth + gutterStep;
+        col += 1;
 
         // If the tile being dragged is in bounds, set a new
         // last index in case it goes out of bounds
@@ -277,13 +289,13 @@ angular.module('ng.cx.sortable', [])
           tile.lastIndex = index;
         }
 
-        if (newTile) {
+        if (tile.newTile) {
           // Clear the new tile flag
           tile.newTile = false;
 
           from = {
             autoAlpha: 0,
-            boxShadow: '0 1px 3px  0 rgba(0, 0, 0, 0.5), 0 1px 2px 0 rgba(0, 0, 0, 0.6)',
+            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.5), 0 1px 2px 0 rgba(0, 0, 0, 0.6)',
             height: tile.height,
             scale: 0,
             width: tile.width
@@ -301,7 +313,7 @@ angular.module('ng.cx.sortable', [])
         // Don't animate the tile that is being dragged and
         // only animate the tiles that have changes
         if (!tile.isDragging && (oldRow !== tile.row || oldCol !== tile.col)) {
-          duration = newTile ? 0 : time;
+          duration = tile.newTile ? 0 : time;
 
           // Boost the z-index for tiles that will travel over
           // another tile due to a row change
@@ -331,11 +343,13 @@ angular.module('ng.cx.sortable', [])
 
       // If the row count has changed, change the height of the container
       if (row !== rowCount) {
+
         rowCount = row;
-        height = rowCount * gutterStep + (++row * rowSize);
         timeline.to(this.$container, 0.2, {
-          height: height
+          height: rowOffset + colHeight + gutterStep
         }, 'reflow');
+
+        this.setConfig('rowCount', rowCount);
       }
     };
 
@@ -350,19 +364,18 @@ angular.module('ng.cx.sortable', [])
     };
 
     this.getDraggables = function () {
-      return _draggables;
+      return this.$container.querySelectorAll('.tile');
     };
 
     this.createTile = function ($elem) {
-      _draggables.push(new CxDraggable($elem, this));
-      this.layoutInvalidated();
+      return new CxDraggable($elem, this);
+    };
+
+    this.onChangedPosition = function (callback) {
+      _onChangePositionCallback = callback;
     };
 
     this.resize = function () {
-      var outerWidth = this.$container.getBoundingClientRect().width;
-
-      _config.colCount = _config.oneColumn ? 1 : Math.floor(outerWidth / (_config.colSize + _config.gutter));
-      _config.gutterStep = _config.colCount == 1 ? _config.gutter : (_config.gutter * (_config.colCount - 1) / _config.colCount);
       _config.rowCount = 0;
 
       this.layoutInvalidated();
@@ -372,39 +385,70 @@ angular.module('ng.cx.sortable', [])
   }
 ])
 
-.directive('cxSortables', [
+.directive('cxSortablesList', [
+  '$compile',
+  '$rootScope',
   'TweenLite',
-  function (TweenLite) {
+  function ($compile, $rootScope, TweenLite) {
     'use strict';
 
     return {
       controller: 'cxSortableCtrl',
       restrict: 'AE',
+      scope: {
+        'items': '=ioSortablesList'
+      },
       link: function ($scope, $elem, $attr, $ctrl) {
-        var startWidth = '100%';
+        var startWidth = $attr.ioSortablesListWidth || $elem[0].getBoundingClientRect().width,
+          template = '<div class="tile" cx-sortable-list-item>' + $elem.html() + '</div>',
+          childScope,
+          childNode,
+          i;
+
+        for (i = 0; i < $scope.items.length; i++) {
+          childNode = angular.element(template);
+          childScope = $rootScope.$new(true, $scope);
+          childScope[$attr.ioSortablesListItemAs] = $scope.items[i];
+
+          $elem.append(childNode);
+          $compile(childNode)(childScope);
+        }
 
         $ctrl.$container = $elem[0];
+        $ctrl.setConfig('gutterStep', parseInt($attr.ioSortablesListGutter || 0, 10));
+
+        $ctrl.onChangedPosition(function () {
+          var draggables = $ctrl.getDraggables(),
+            model = [];
+
+          for (var i = 0; i < draggables.length; i++) {
+            model.push(angular.element(draggables[i]).scope()[$attr.ioSortablesListItemAs]);
+          }
+
+          $scope.$evalAsync(function () {
+            $scope.items = model;
+          });
+        });
 
         TweenLite.to($elem, 0.2, {
           width: startWidth
         });
 
-        TweenLite.delayedCall(0.25, angular.bind($ctrl, $ctrl.resize));
+        TweenLite.delayedCall(0.2, angular.bind($ctrl, $ctrl.resize));
       }
     };
   }
 ])
 
-.directive('cxSortable', [
+.directive('cxSortableListItem', [
   function () {
     'use strict';
-
     return {
-      require: '^cxSortables',
+      require: '^cxSortablesList',
       restrict: 'AE',
       link: function ($scope, $elem, $attr, $ctrl) {
 
-        $ctrl.createTile($elem[0]);
+        $scope.$draggable = $ctrl.createTile($elem[0]);
       }
     };
   }

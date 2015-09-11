@@ -11,16 +11,23 @@
     </head>
     <body ng-app="example.app">
         <div ng-controller="ExampleCtrl">
-            <div id="list" cx-sortables>
-                <div class="tile" cx-sortable ng-repeat="item in things track by $index">
-                    {{ item }}
-                </div>
+            <p>{{ things }} </p>
+
+            <div class="list" cx-sortables-list
+                io-sortables-list="things"
+                io-sortables-list-item-as="item"
+                io-sortables-list-gutter="7"
+                io-sortables-list-width="100%">
+                <p>{{ item }}</p>
             </div>
         </div>
 
         <% _.each(jslibs, function(lib) { %>
         <script type="text/javascript" src="<%= lib %>"></script>
         <% }); %>
-        <script type="text/javascript" src="<%= mainjs %>"></script>
+
+        <% _.each(mainjs, function(lib) { %>
+        <script type="text/javascript" src="<%= lib %>"></script>
+        <% }); %>
     </body>
 </html>

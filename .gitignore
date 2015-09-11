@@ -1,6 +1,7 @@
 node_modules/
 components/
 build/
+dist/
 
 .DS_Store
 .AppleDouble

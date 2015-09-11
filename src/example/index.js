@@ -1,11 +1,12 @@
-
 angular.module('example.app', [
-    'ng.cx.sortable'
+  'ng.cx.sortable'
 ])
 
 .controller('ExampleCtrl', [
-    '$scope',
-    function ($scope) {
-        $scope.things = 'Pneumonoultramicroscopicsilicovolcanoconiosis'.split('');
-    }
+  '$scope',
+  function ($scope) {
+    'use strict';
+
+    $scope.things = 'Pneumonoultramicroscopicsilicovolcanoconiosis'.split('');
+  }
 ]);
