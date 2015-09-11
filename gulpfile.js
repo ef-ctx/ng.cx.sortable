@@ -13,7 +13,7 @@ var gulp = require('gulp'),
 var env = 'dev';
 
 gulp.task('clean', function () {
-  return gulp.src([config.dev.target, config.prod.target], {read: false})
+  return gulp.src([config.dev.target, config.dist.target], {read: false})
     .pipe(clean());
 });
 

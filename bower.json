@@ -1,0 +1,20 @@
+{
+  "name": "ng.cx.sortable",
+  "version": "0.0.0",
+  "homepage": "https://github.com/ef-ctx/ng.cx.sortable",
+  "authors": [
+    "Fredrik Bonander <carl.fredrik.bonander@gmail.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angularjs": "~1.4.5"
+  }
+}
