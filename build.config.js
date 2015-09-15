@@ -3,21 +3,21 @@ var config = {
         target: 'dist/',
         libsTarget: 'greenstock.js',
         jslibs: [
-            'lib/greenstock/minified/TweenLite.min.js',
-            'lib/greenstock/minified/TimelineMax.min.js',
-            'lib/greenstock/minified/CSSPlugin.min.js',
-            'lib/greenstock/minified/Draggable.min.js',
+            'vendor/gsap/src/minified/TweenLite.min.js',
+            'vendor/gsap/src/minified/TimelineMax.min.js',
+            'vendor/gsap/src/minified/plugins/CSSPlugin.min.js',
+            'vendor/gsap/src/minified/Draggable.min.js',
         ],
         js: ['src/ng.cx.sortable.js']
     },
     dev: {
         target: 'build/',
         jslibs: [
-            'components/angularjs/angular.js',
-            'lib/greenstock/uncompressed/TweenLite.js',
-            'lib/greenstock/uncompressed/TimelineMax.js',
-            'lib/greenstock/uncompressed/CSSPlugin.js',
-            'lib/greenstock/uncompressed/Draggable.js'
+            'vendor/angularjs/angular.js',
+            'vendor/gsap/src/uncompressed/TweenLite.js',
+            'vendor/gsap/src/uncompressed/TimelineMax.js',
+            'vendor/gsap/src/uncompressed/plugins/CSSPlugin.js',
+            'vendor/gsap/src/uncompressed/utils/Draggable.js'
         ],
         js: ['ng.cx.sortable.js', 'example/index.js']
     },
